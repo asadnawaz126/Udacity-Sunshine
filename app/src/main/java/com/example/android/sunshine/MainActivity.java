@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     public Loader<String[]> onCreateLoader(int i, final Bundle bundle) {
         return new AsyncTaskLoader<String[]>(this) {
             String[] weatherLocation = null;
+
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
@@ -137,9 +138,6 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
             @Override
             public String[] loadInBackground() {
-                if (bundle == null) {
-                    return null;
-                }
 
                 String locationQuery = SunshinePreferences.getPreferredWeatherLocation(MainActivity.this);
                 URL weatherRequestUrl = NetworkUtils.buildUrl(locationQuery);
@@ -272,6 +270,12 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
         if (id == R.id.action_map) {
             openLocationInMap();
+            return true;
+        }
+
+        if(id == R.id.action_settings){
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
             return true;
         }
 
