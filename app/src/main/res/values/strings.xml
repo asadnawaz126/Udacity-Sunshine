@@ -38,6 +38,23 @@
         An error has occurred. Please try again by clicking REFRESH
     </string>
 
+    <!-- Strings for Preferences -->
+
+    <!-- Unit ListPreference Strings -->
+    <string name="pref_show_unit_label">Change Temperature Unit</string>
+    <string name="pref_unit_celsius_label">Celsius</string>
+    <string name="pref_unit_fahrenheit_label">Fahrenheit</string>
+    <string name="pref_unit_key">unit</string>
+    <string name="pref_unit_default_value">celsius</string>
+
+    <string name="pref_unit_celsius_value" translatable="false">celsius</string>
+    <string name="pref_unit_fahrenheit_value" translatable="false">fahrenheit</string>
+
+    <!-- Location EditTextPreference Strings -->
+    <string name="pref_location_default_value">Mountain View, CA 94043</string>
+    <string name="pref_location_label">Location</string>
+    <string name="pref_location_key">location</string>
+
 
     <!-- - - - - - - - - - - - - -->
     <!--Used by SunshineDateUtils-->
