@@ -38,6 +38,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.android.sunshine.ForecastAdapter.ForecastAdapterOnClickHandler;
 import com.example.android.sunshine.data.SunshinePreferences;
+import com.example.android.sunshine.database.AppDatabase;
+import com.example.android.sunshine.database.WeatherEntry;
+import com.example.android.sunshine.models.Weather;
 import com.example.android.sunshine.utilities.NetworkUtils;
 import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
 
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     private static final int FETCH_WEATHER_LOADER = 0;
 
     private static boolean HAS_PREFERENCE_CHANGED = false;
-
+    private WeatherEntry weatherEntryObj;
 
     private RecyclerView mRecyclerView;
     private ForecastAdapter mForecastAdapter;
@@ -60,11 +63,14 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
     private ProgressBar mLoadingIndicator;
 
+    private AppDatabase appDatabase;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
 
+        appDatabase = AppDatabase.getInstance(getApplicationContext());
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_forecast);
 
@@ -130,8 +136,6 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
             @Override
             protected void onStartLoading() {
-                super.onStartLoading();
-
                 if (weatherLocation != null) {
                     deliverResult(weatherLocation);
                 } else {
@@ -149,10 +153,17 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
                 try {
                     String jsonWeatherResponse = NetworkUtils
-                            .getResponseFromHttpUrl(weatherRequestUrl);
+                            .getResponseFromHttpUrl(MainActivity.this, weatherRequestUrl);
+
+                    Log.d(TAG, "jsonWeatherResponse: "+ jsonWeatherResponse);
 
                     String[] simpleJsonWeatherData = OpenWeatherJsonUtils
                             .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse);
+
+//                    for(int i =0;i<simpleJsonWeatherData.length;i++){
+//
+//                        weatherEntryObj = new WeatherEntry(simpleJsonWeatherData[i]);
+//                    }
 
                     return simpleJsonWeatherData;
 
@@ -175,7 +186,9 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
         mLoadingIndicator.setVisibility(View.INVISIBLE);
         mForecastAdapter.setWeatherData(data);
         if (null == data) {
-            showErrorMessage();
+            //showErrorMessage();
+            weatherEntryObj = new WeatherEntry();
+            mForecastAdapter.setWeatherData(weatherEntryObj.convertToStringArray(appDatabase.weatherDao().loadAllWeather()));
         } else {
             showWeatherDataView();
         }
@@ -239,7 +252,9 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
 
         if (id == R.id.action_refresh) {
+            Log.d(TAG, "Refresh Button Clicked");
             invalidateData();
+            Log.d(TAG, "Invalidate Data called ");
             getSupportLoaderManager().restartLoader(FETCH_WEATHER_LOADER, null, this);
             return true;
         }

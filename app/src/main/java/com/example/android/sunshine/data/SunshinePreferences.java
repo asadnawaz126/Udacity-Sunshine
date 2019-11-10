@@ -17,6 +17,7 @@ package com.example.android.sunshine.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
@@ -24,7 +25,7 @@ import com.example.android.sunshine.R;
 
 public class SunshinePreferences {
 
-
+    private static final String TAG = SunshinePreferences.class.getSimpleName();
 
     public static final String PREF_CITY_NAME = "city_name";
 
@@ -59,6 +60,8 @@ public class SunshinePreferences {
     public static String getPreferredWeatherLocation(Context context) {
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Log.d(TAG, "getPreferredWeatherLocation: preffered location = " + sharedPreferences.getString(context.getString(R.string.pref_location_key),
+                context.getString(R.string.pref_location_default_value)));
         return sharedPreferences.getString(context.getString(R.string.pref_location_key),
                 context.getString(R.string.pref_location_default_value));
     }

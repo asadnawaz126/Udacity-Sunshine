@@ -17,6 +17,11 @@ package com.example.android.sunshine.utilities;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.util.Log;
+
+import com.example.android.sunshine.database.AppDatabase;
+import com.example.android.sunshine.database.DateConverter;
+import com.example.android.sunshine.database.WeatherEntry;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +33,12 @@ import java.net.HttpURLConnection;
  * Utility functions to handle OpenWeatherMap JSON data.
  */
 public final class OpenWeatherJsonUtils {
+
+
+    private static final String TAG = OpenWeatherJsonUtils.class.getSimpleName();
+
+    //database instance
+    private static AppDatabase databaseInstance;
 
     /**
      * This method parses JSON from a web response and returns an array of Strings
@@ -45,6 +56,8 @@ public final class OpenWeatherJsonUtils {
      */
     public static String[] getSimpleWeatherStringsFromJson(Context context, String forecastJsonStr)
             throws JSONException {
+
+        databaseInstance = AppDatabase.getInstance(context);
 
         /* Weather information. Each day's forecast info is an element of the "list" array */
         final String OWM_LIST = "list";
@@ -89,7 +102,7 @@ public final class OpenWeatherJsonUtils {
         long localDate = System.currentTimeMillis();
         long utcDate = SunshineDateUtils.getUTCDateFromLocal(localDate);
         long startDay = SunshineDateUtils.normalizeDate(utcDate);
-
+        WeatherEntry weatherEntry;
         for (int i = 0; i < weatherArray.length(); i++) {
             String date;
             String highAndLow;
@@ -130,9 +143,19 @@ public final class OpenWeatherJsonUtils {
             low = temperatureObject.getDouble(OWM_MIN);
             highAndLow = SunshineWeatherUtils.formatHighLows(context, high, low);
 
+
+            weatherEntry = new WeatherEntry(date, description, SunshineWeatherUtils.formatTemperature(context, high),
+                    SunshineWeatherUtils.formatTemperature(context, high));
+            databaseInstance.weatherDao().insertWeatherData(weatherEntry);
+//            weatherEntry = databaseInstance.weatherDao().loadSingleEntry(i+1);
+//            Log.d(TAG, "weatherEntry read from database: "+ weatherEntry.getDescription());
             parsedWeatherData[i] = date + " - " + description + " - " + highAndLow;
         }
 
+//        WeatherEntry[] weatherEntries = databaseInstance.weatherDao().loadAllWeather();
+//        for(int i=0;i<weatherEntries.length;i++){
+//            Log.d(TAG, "weatherEntry read from database: "+ weatherEntries[i].getDescription() +"\n");
+//        }
         return parsedWeatherData;
     }
 

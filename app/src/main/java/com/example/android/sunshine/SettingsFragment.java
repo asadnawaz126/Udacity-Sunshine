@@ -21,7 +21,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
         SharedPreferences sharedPreferences =getPreferenceScreen().getSharedPreferences();
         PreferenceScreen prefScreen = getPreferenceScreen();
-       /** the following code is to access all the preferences that we want to update the summary to but
+       /** the following code is to access all the preferences that we want to update the weather to but
         can't do via xml so we're doing it programmatically.
         this is for when the settingsactivity is first created. for subsequent changes, there is the
         setPreferenceSummary **/

@@ -15,8 +15,12 @@
  */
 package com.example.android.sunshine.utilities;
 
+import android.content.Context;
 import android.net.Uri;
+import android.text.style.DynamicDrawableSpan;
 import android.util.Log;
+
+import com.example.android.sunshine.database.AppDatabase;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +34,8 @@ import java.util.Scanner;
  */
 public final class NetworkUtils {
 
+    private static AppDatabase databaseInstance;
+
     private static final String TAG = NetworkUtils.class.getSimpleName();
 
     private static final String DYNAMIC_WEATHER_URL =
@@ -38,7 +44,7 @@ public final class NetworkUtils {
     private static final String STATIC_WEATHER_URL =
             "https://andfun-weather.udacity.com/staticweather";
 
-    private static final String FORECAST_BASE_URL = STATIC_WEATHER_URL;
+    private static final String FORECAST_BASE_URL = DYNAMIC_WEATHER_URL;
 
     /*
      * NOTE: These values only effect responses from OpenWeatherMap, NOT from the fake weather
@@ -108,7 +114,7 @@ public final class NetworkUtils {
      * @return The contents of the HTTP response.
      * @throws IOException Related to network and stream reading
      */
-    public static String getResponseFromHttpUrl(URL url) throws IOException {
+    public static String getResponseFromHttpUrl(Context context, URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
             InputStream in = urlConnection.getInputStream();
@@ -118,6 +124,8 @@ public final class NetworkUtils {
 
             boolean hasInput = scanner.hasNext();
             if (hasInput) {
+                databaseInstance = AppDatabase.getInstance(context);
+                databaseInstance.weatherDao().deleteAllDatabaseData();
                 return scanner.next();
             } else {
                 return null;
