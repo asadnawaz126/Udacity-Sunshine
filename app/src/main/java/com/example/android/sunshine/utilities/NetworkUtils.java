@@ -34,7 +34,6 @@ import java.util.Scanner;
  */
 public final class NetworkUtils {
 
-    private static AppDatabase databaseInstance;
 
     private static final String TAG = NetworkUtils.class.getSimpleName();
 
@@ -111,10 +110,11 @@ public final class NetworkUtils {
      * This method returns the entire result from the HTTP response.
      *
      * @param url The URL to fetch the HTTP response from.
+     * @param databaseInstance Instance of Database from Main Activity
      * @return The contents of the HTTP response.
      * @throws IOException Related to network and stream reading
      */
-    public static String getResponseFromHttpUrl(Context context, URL url) throws IOException {
+    public static String getResponseFromHttpUrl(URL url, AppDatabase databaseInstance) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
             InputStream in = urlConnection.getInputStream();
@@ -124,7 +124,6 @@ public final class NetworkUtils {
 
             boolean hasInput = scanner.hasNext();
             if (hasInput) {
-                databaseInstance = AppDatabase.getInstance(context);
                 databaseInstance.weatherDao().deleteAllDatabaseData();
                 return scanner.next();
             } else {

@@ -37,8 +37,7 @@ public final class OpenWeatherJsonUtils {
 
     private static final String TAG = OpenWeatherJsonUtils.class.getSimpleName();
 
-    //database instance
-    private static AppDatabase databaseInstance;
+    ;
 
     /**
      * This method parses JSON from a web response and returns an array of Strings
@@ -50,14 +49,15 @@ public final class OpenWeatherJsonUtils {
      *
      * @param forecastJsonStr JSON response from server
      *
+     * @param databaseInstance Instance of Database from Main Activity
+     *
      * @return Array of Strings describing weather data
      *
      * @throws JSONException If JSON data cannot be properly parsed
      */
-    public static String[] getSimpleWeatherStringsFromJson(Context context, String forecastJsonStr)
+    public static String[] getSimpleWeatherStringsFromJson(Context context, String forecastJsonStr, AppDatabase databaseInstance)
             throws JSONException {
 
-        databaseInstance = AppDatabase.getInstance(context);
 
         /* Weather information. Each day's forecast info is an element of the "list" array */
         final String OWM_LIST = "list";

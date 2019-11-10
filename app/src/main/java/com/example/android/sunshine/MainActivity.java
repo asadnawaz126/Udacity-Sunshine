@@ -49,6 +49,7 @@ import java.net.URL;
 public class MainActivity extends AppCompatActivity implements ForecastAdapterOnClickHandler, LoaderManager.LoaderCallbacks<String[]>,
         SharedPreferences.OnSharedPreferenceChangeListener {
 
+
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private static final int FETCH_WEATHER_LOADER = 0;
@@ -153,12 +154,12 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
                 try {
                     String jsonWeatherResponse = NetworkUtils
-                            .getResponseFromHttpUrl(MainActivity.this, weatherRequestUrl);
+                            .getResponseFromHttpUrl(weatherRequestUrl, appDatabase);
 
                     Log.d(TAG, "jsonWeatherResponse: "+ jsonWeatherResponse);
 
                     String[] simpleJsonWeatherData = OpenWeatherJsonUtils
-                            .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse);
+                            .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse, appDatabase);
 
 //                    for(int i =0;i<simpleJsonWeatherData.length;i++){
 //
