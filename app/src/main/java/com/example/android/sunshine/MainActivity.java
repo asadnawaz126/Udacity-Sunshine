@@ -18,6 +18,8 @@ package com.example.android.sunshine;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -30,6 +32,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.AsyncTaskLoader;
 import androidx.loader.content.Loader;
@@ -41,6 +45,7 @@ import com.example.android.sunshine.data.SunshinePreferences;
 import com.example.android.sunshine.database.AppDatabase;
 import com.example.android.sunshine.database.WeatherEntry;
 import com.example.android.sunshine.models.Weather;
+import com.example.android.sunshine.utilities.AppExecutors;
 import com.example.android.sunshine.utilities.NetworkUtils;
 import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
 
@@ -55,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     private static final int FETCH_WEATHER_LOADER = 0;
 
     private static boolean HAS_PREFERENCE_CHANGED = false;
-    private WeatherEntry weatherEntryObj;
+
 
     private RecyclerView mRecyclerView;
     private ForecastAdapter mForecastAdapter;
@@ -103,15 +108,18 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
+
+        //loadFromDatabase();
     }
 
 
     @Override
-    public void onClick(String weatherForDay) {
+    public void onClick(int adapterPosition) {
         Context context = this;
         Class destinationClass = DetailActivity.class;
+        Log.d(TAG, "onClick: Adapter position: " + adapterPosition);
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
-        intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT, weatherForDay);
+        intentToStartDetailActivity.putExtra("EXTRA_WEATHER_ID", adapterPosition);
         startActivity(intentToStartDetailActivity);
     }
 
@@ -124,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     }
 
     private void showErrorMessage() {
+        Log.d(TAG, "showErrorMessage: show error message was called");
         /* First, hide the currently visible data */
         mRecyclerView.setVisibility(View.INVISIBLE);
         /* Then, show the error */
@@ -154,21 +163,19 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
                 try {
                     String jsonWeatherResponse = NetworkUtils
-                            .getResponseFromHttpUrl(weatherRequestUrl, appDatabase);
+                            .getResponseFromHttpUrl(weatherRequestUrl);
 
-                    Log.d(TAG, "jsonWeatherResponse: "+ jsonWeatherResponse);
+
+                    Log.d(TAG, "jsonWeatherResponse: " + jsonWeatherResponse);
 
                     String[] simpleJsonWeatherData = OpenWeatherJsonUtils
                             .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse, appDatabase);
 
-//                    for(int i =0;i<simpleJsonWeatherData.length;i++){
-//
-//                        weatherEntryObj = new WeatherEntry(simpleJsonWeatherData[i]);
-//                    }
 
                     return simpleJsonWeatherData;
 
                 } catch (Exception e) {
+                    //showErrorMessage();
                     e.printStackTrace();
                     return null;
                 }
@@ -185,20 +192,44 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     @Override
     public void onLoadFinished(Loader<String[]> loader, String[] data) {
         mLoadingIndicator.setVisibility(View.INVISIBLE);
-        mForecastAdapter.setWeatherData(data);
+
         if (null == data) {
-            //showErrorMessage();
-            weatherEntryObj = new WeatherEntry();
-            mForecastAdapter.setWeatherData(weatherEntryObj.convertToStringArray(appDatabase.weatherDao().loadAllWeather()));
+            loadFromDatabase();
         } else {
+            mForecastAdapter.setWeatherData(data);
             showWeatherDataView();
         }
     }
 
     @Override
     public void onLoaderReset(Loader<String[]> loader) {
-
+//        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+//            @Override
+//            public void run() {
+//                appDatabase.weatherDao().deleteAllDatabaseData();
+//                Log.d(TAG, "Deleted all tasks from database ");
+//            }
+//        });
     }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void loadFromDatabase() {
+        final LiveData<WeatherEntry[]> weatherData = appDatabase.weatherDao().loadAllWeather();
+        weatherData.observe(this, new Observer<WeatherEntry[]>() {
+            @Override
+            public void onChanged(WeatherEntry[] weatherEntries) {
+                Log.d(TAG, "Live Data check: weather from database has been received");
+                mForecastAdapter.setWeatherData(new WeatherEntry().convertToStringArray(weatherEntries));
+            }
+        });
+    }
+
 
     private void invalidateData() {
         mForecastAdapter.setWeatherData(null);
@@ -209,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
     protected void onStart() {
         super.onStart();
 
-        if(HAS_PREFERENCE_CHANGED){
+        if (HAS_PREFERENCE_CHANGED) {
             Log.d(TAG, "onStart: preferences were updated");
             getSupportLoaderManager().restartLoader(FETCH_WEATHER_LOADER, null, this);
             HAS_PREFERENCE_CHANGED = false;
@@ -253,9 +284,11 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
 
 
         if (id == R.id.action_refresh) {
+
             Log.d(TAG, "Refresh Button Clicked");
             invalidateData();
             Log.d(TAG, "Invalidate Data called ");
+
             getSupportLoaderManager().restartLoader(FETCH_WEATHER_LOADER, null, this);
             return true;
         }
@@ -265,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
             return true;
         }
 
-        if(id == R.id.action_settings){
+        if (id == R.id.action_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;

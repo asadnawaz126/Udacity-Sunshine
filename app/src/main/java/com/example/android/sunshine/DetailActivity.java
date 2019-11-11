@@ -2,16 +2,27 @@ package com.example.android.sunshine;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ShareCompat;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+
+import com.example.android.sunshine.database.AppDatabase;
+import com.example.android.sunshine.database.WeatherEntry;
+import com.example.android.sunshine.utilities.AppExecutors;
 
 public class DetailActivity extends AppCompatActivity {
 
+    private static final String TAG = DetailActivity.class.getSimpleName();
+
     private static final String FORECAST_SHARE_HASHTAG = " #SunshineApp";
+
+    private AppDatabase databaseInstance;
 
     private String mForecast;
     private TextView mWeatherDisplay;
@@ -21,14 +32,26 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
+        databaseInstance = AppDatabase.getInstance(getApplicationContext());
         mWeatherDisplay = (TextView) findViewById(R.id.tv_display_weather);
 
         Intent intentThatStartedThisActivity = getIntent();
 
         if (intentThatStartedThisActivity != null) {
-            if (intentThatStartedThisActivity.hasExtra(Intent.EXTRA_TEXT)) {
-                mForecast = intentThatStartedThisActivity.getStringExtra(Intent.EXTRA_TEXT);
-                mWeatherDisplay.setText(mForecast);
+            if (intentThatStartedThisActivity.hasExtra("EXTRA_WEATHER_ID")) {
+                int id = intentThatStartedThisActivity.getIntExtra("EXTRA_WEATHER_ID", 0);
+                Log.d(TAG, "Detail Activity: value of id: "+ id);
+                LiveData<WeatherEntry> weatherEntry = databaseInstance.weatherDao().loadSingleEntry(id+1);
+                weatherEntry.observe(this, new Observer<WeatherEntry>() {
+                    @Override
+                    public void onChanged(WeatherEntry weatherEntry) {
+                        boolean isNULL = weatherEntry == null ? true : false;
+                        Log.d(TAG, "LiveData: got single entry from database:" + isNULL + "\t database entry number: "+ weatherEntry.getId());
+                        mForecast = new WeatherEntry().convertToString(weatherEntry);
+                        mWeatherDisplay.setText(mForecast);
+                    }
+                });
+
             }
         }
     }

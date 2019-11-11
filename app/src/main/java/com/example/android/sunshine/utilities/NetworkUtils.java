@@ -114,7 +114,7 @@ public final class NetworkUtils {
      * @return The contents of the HTTP response.
      * @throws IOException Related to network and stream reading
      */
-    public static String getResponseFromHttpUrl(URL url, AppDatabase databaseInstance) throws IOException {
+    public static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
             InputStream in = urlConnection.getInputStream();
@@ -124,7 +124,6 @@ public final class NetworkUtils {
 
             boolean hasInput = scanner.hasNext();
             if (hasInput) {
-                databaseInstance.weatherDao().deleteAllDatabaseData();
                 return scanner.next();
             } else {
                 return null;

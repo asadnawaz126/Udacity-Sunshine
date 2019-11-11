@@ -42,7 +42,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
      * The interface that receives onClick messages.
      */
     public interface ForecastAdapterOnClickHandler {
-        void onClick(String weatherForDay);
+        void onClick(int adapterPosition);
     }
 
     /**
@@ -75,8 +75,8 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
         @Override
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
-            String weatherForDay = mWeatherData[adapterPosition];
-            mClickHandler.onClick(weatherForDay);
+            //String weatherForDay = mWeatherData[adapterPosition];
+            mClickHandler.onClick(adapterPosition);
         }
     }
 
@@ -142,7 +142,4 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
         notifyDataSetChanged();
     }
 
-    public void setWeatherDataFromDatabase(List<String> weatherDataFromDatabase){
-
-    }
 }

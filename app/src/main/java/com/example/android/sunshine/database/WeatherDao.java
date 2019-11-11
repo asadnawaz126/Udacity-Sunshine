@@ -1,5 +1,6 @@
 package com.example.android.sunshine.database;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
@@ -10,10 +11,10 @@ import androidx.room.Query;
 public interface WeatherDao {
 
     @Query("SELECT * FROM weather")
-    WeatherEntry[] loadAllWeather();
+    LiveData<WeatherEntry[]> loadAllWeather();
 
     @Query("SELECT * FROM weather WHERE id = :id ")
-    WeatherEntry loadSingleEntry(int id);
+    LiveData<WeatherEntry> loadSingleEntry(int id);
 
     @Insert
     void insertAllDataIntoDatabase(WeatherEntry[] weatherEntryList);

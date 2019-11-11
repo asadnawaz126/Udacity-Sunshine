@@ -55,8 +55,19 @@ public final class OpenWeatherJsonUtils {
      *
      * @throws JSONException If JSON data cannot be properly parsed
      */
-    public static String[] getSimpleWeatherStringsFromJson(Context context, String forecastJsonStr, AppDatabase databaseInstance)
+    public static String[] getSimpleWeatherStringsFromJson(Context context, String forecastJsonStr, final AppDatabase databaseInstance)
             throws JSONException {
+
+
+//            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+//                @Override
+//                public void run() {
+//                    databaseInstance.weatherDao().deleteAllDatabaseData();
+//                    Log.d(TAG, "Deleted all tasks from database ");
+//                }
+//            });
+
+
 
 
         /* Weather information. Each day's forecast info is an element of the "list" array */
@@ -102,7 +113,7 @@ public final class OpenWeatherJsonUtils {
         long localDate = System.currentTimeMillis();
         long utcDate = SunshineDateUtils.getUTCDateFromLocal(localDate);
         long startDay = SunshineDateUtils.normalizeDate(utcDate);
-        WeatherEntry weatherEntry;
+
         for (int i = 0; i < weatherArray.length(); i++) {
             String date;
             String highAndLow;
@@ -144,9 +155,18 @@ public final class OpenWeatherJsonUtils {
             highAndLow = SunshineWeatherUtils.formatHighLows(context, high, low);
 
 
-            weatherEntry = new WeatherEntry(date, description, SunshineWeatherUtils.formatTemperature(context, high),
-                    SunshineWeatherUtils.formatTemperature(context, high));
-            databaseInstance.weatherDao().insertWeatherData(weatherEntry);
+            //insert data into database as it is retrieved from server so as to keep the database fresh
+            final WeatherEntry weatherEntry = new WeatherEntry(date, description, SunshineWeatherUtils.formatTemperature(context, high),
+                    SunshineWeatherUtils.formatTemperature(context, low));
+            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    databaseInstance.weatherDao().insertWeatherData(weatherEntry);
+                }
+            });
+
+            Log.d(TAG, "getSimpleWeatherStringsFromJson: Inserted all tasks into database");
+
 //            weatherEntry = databaseInstance.weatherDao().loadSingleEntry(i+1);
 //            Log.d(TAG, "weatherEntry read from database: "+ weatherEntry.getDescription());
             parsedWeatherData[i] = date + " - " + description + " - " + highAndLow;

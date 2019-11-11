@@ -143,7 +143,7 @@ public class WeatherEntry implements Weather {
     }
 
     public String convertToString(WeatherEntry weatherEntry){
-        String entry = weatherEntry.date + " - " + weatherEntry.minTemp + " - " + weatherEntry.maxTemp;
+        String entry = weatherEntry.date + " - " + weatherEntry.maxTemp + " - " + weatherEntry.minTemp;
 
         return entry;
     }
